@@ -115,8 +115,9 @@ import { CardOption } from '../../models/event-card.model';
     }
     
     .scene {
-      width: 320px;
-      height: 480px;
+      width: 540px;
+      height: 360px;
+      max-width: 95vw;
       perspective: 1200px;
       cursor: pointer;
       margin-bottom: 2rem;
