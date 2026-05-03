@@ -23,6 +23,29 @@ interface MapMarker {
         </button>
       }
 
+      <!-- Players Panel -->
+      @if (cardService.isSessionActive()) {
+        <div class="players-panel">
+          <h4>Mevcut Oyuncular</h4>
+          <div class="player-list">
+            @for (player of cardService.players(); track player.id) {
+              <div class="player-card" 
+                   [class.active]="player.id === cardService.activePlayerId()"
+                   (click)="cardService.setActivePlayer(player.id)"
+                   [style.border-left-color]="player.color">
+                <span class="player-name">{{ player.name }}</span>
+                @if (player.id === cardService.activePlayerId()) {
+                  <span class="active-dot">●</span>
+                }
+              </div>
+            }
+          </div>
+          <p class="helper-text">
+            Kart çekmek için önce oyuncuyu seçin, sonra haritaya tıklayın.
+          </p>
+        </div>
+      }
+
       <div class="map-container">
         <img [src]="'assets/' + currentMap + '.jpeg'" [alt]="currentMap" class="map-image" 
              (error)="onImageError($event)">
@@ -87,6 +110,66 @@ interface MapMarker {
     .back-btn:hover {
       background: rgba(212, 175, 55, 0.2);
       color: var(--accent-gold);
+    }
+
+    .players-panel {
+      position: absolute;
+      top: 1rem;
+      right: 1rem;
+      z-index: 100;
+      background: rgba(0, 0, 0, 0.85);
+      border: 1px solid var(--accent-gold);
+      border-radius: 8px;
+      padding: 1rem;
+      min-width: 200px;
+      backdrop-filter: blur(5px);
+      box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+    }
+    .players-panel h4 {
+      color: var(--accent-gold);
+      margin-top: 0;
+      margin-bottom: 1rem;
+      font-size: 1.1rem;
+      border-bottom: 1px solid rgba(212, 175, 55, 0.3);
+      padding-bottom: 0.5rem;
+    }
+    .player-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+    .player-card {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.6rem;
+      background: rgba(255,255,255,0.05);
+      border-radius: 4px;
+      border-left: 4px solid #fff;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .player-card:hover {
+      background: rgba(255,255,255,0.1);
+    }
+    .player-card.active {
+      background: rgba(212, 175, 55, 0.2);
+    }
+    .player-name {
+      color: var(--text-main);
+      font-weight: bold;
+    }
+    .active-dot {
+      color: var(--accent-green);
+      font-size: 1.2rem;
+      line-height: 1;
+    }
+    .helper-text {
+      margin-top: 1rem;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      font-style: italic;
+      line-height: 1.3;
     }
 
     .map-container {
@@ -167,7 +250,7 @@ interface MapMarker {
   `]
 })
 export class MapViewComponent {
-  private cardService = inject(CardService);
+  public cardService = inject(CardService);
 
   // Start at the World Map
   currentMap: 'mistyhighlans' | 'fullmap' = 'fullmap';
@@ -223,7 +306,7 @@ export class MapViewComponent {
   triggerEvent(marker: MapMarker) {
     if (marker.type === 'castle') {
       console.log('Marker clicked:', marker);
-      this.cardService.drawRandomCard(this.currentMap);
+      this.cardService.drawRandomCard(this.currentMap, this.cardService.activePlayerId());
     }
   }
 }

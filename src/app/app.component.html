@@ -3,6 +3,9 @@
 <!-- Always render CardDisplayComponent so it can catch events and show modal over anything -->
 <app-card-display></app-card-display>
 
+<!-- Player Setup Modal -->
+<app-player-setup></app-player-setup>
+
 <main class="container" [class.full-width]="currentView === 'map'">
   
   @if (currentView === 'map') {

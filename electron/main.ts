@@ -19,6 +19,9 @@ function createWindow() {
   // Remove default menu for a more game-like feel
   mainWindow.setMenuBarVisibility(false);
 
+  // Uygulamayı direkt tam ekran (maximized) başlat
+  mainWindow.maximize();
+
   // Load the Angular dev server
   mainWindow.loadURL('http://localhost:4200');
 

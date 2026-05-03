@@ -43,14 +43,38 @@ import { CardType, CardOption } from '../../models/event-card.model';
             @if (!isGlobal) {
               <select [(ngModel)]="mapRegion" name="mapRegion" required class="mt-2">
                 <option value="mistyhighlans">Misty Highlands</option>
-                <option value="fullmap">Dünya Haritası (Full Map)</option>
               </select>
             }
             
-            <label class="checkbox-label mt-2" style="color: var(--accent-gold);">
-              <input type="checkbox" [(ngModel)]="oncePerSession" name="oncePerSession">
-              Bu kart session boyunca (bu mapte) sadece 1 kez çekilebilir.
-            </label>
+            <div class="mt-2" style="background: rgba(0,0,0,0.2); padding: 0.5rem; border-radius: 4px;">
+              <label style="color: var(--accent-gold); display: block; margin-bottom: 0.3rem;">Çekilme Sınırı</label>
+              
+              <label class="radio-label">
+                <input type="radio" [(ngModel)]="drawLimit" name="drawLimit" value="unlimited">
+                Sınırsız Çekilebilir
+              </label>
+              <label class="radio-label">
+                <input type="radio" [(ngModel)]="drawLimit" name="drawLimit" value="session">
+                Session başına sadece 1 kez (Tüm Harita İçin)
+              </label>
+              <label class="radio-label">
+                <input type="radio" [(ngModel)]="drawLimit" name="drawLimit" value="player">
+                Her oyuncu için session başına 1 kez
+              </label>
+            </div>
+            
+            <div class="mt-2" style="background: rgba(0,0,0,0.2); padding: 0.5rem; border-radius: 4px;">
+              <label style="color: var(--accent-gold); display: block; margin-bottom: 0.3rem;">Tetiklenme Zamanı (Bu karta yönlendirme yapıldığında)</label>
+              
+              <label class="radio-label">
+                <input type="radio" [(ngModel)]="triggerMode" name="triggerMode" value="immediate">
+                Anında Ekrana Gelir
+              </label>
+              <label class="radio-label">
+                <input type="radio" [(ngModel)]="triggerMode" name="triggerMode" value="pending">
+                Oyuncunun "Bekleyen Event" listesine düşer (Haritada gezerken şansa çıkar)
+              </label>
+            </div>
           </div>
           
           <div class="form-group">
@@ -92,7 +116,7 @@ import { CardType, CardOption } from '../../models/event-card.model';
                         <option [value]="undefined">-- Kartı Kapat --</option>
                         @for (c of availableCards(); track c.id) {
                           @if (c.id !== editingId) {
-                            <option [value]="c.id">{{ c.title }}</option>
+                            <option [value]="c.id">[{{ c.type | uppercase }}] {{ c.title }}</option>
                           }
                         }
                       </select>
@@ -104,7 +128,7 @@ import { CardType, CardOption } from '../../models/event-card.model';
                         <option [value]="undefined">-- Kartı Kapat --</option>
                         @for (c of availableCards(); track c.id) {
                           @if (c.id !== editingId) {
-                            <option [value]="c.id">{{ c.title }}</option>
+                            <option [value]="c.id">[{{ c.type | uppercase }}] {{ c.title }}</option>
                           }
                         }
                       </select>
@@ -115,7 +139,7 @@ import { CardType, CardOption } from '../../models/event-card.model';
                         <option [value]="undefined">-- Kartı Kapat --</option>
                         @for (c of availableCards(); track c.id) {
                           @if (c.id !== editingId) {
-                            <option [value]="c.id">{{ c.title }}</option>
+                            <option [value]="c.id">[{{ c.type | uppercase }}] {{ c.title }}</option>
                           }
                         }
                       </select>
@@ -274,6 +298,15 @@ import { CardType, CardOption } from '../../models/event-card.model';
       cursor: pointer;
       color: #ccc;
     }
+    .radio-label {
+      display: flex;
+      align-items: center;
+      gap: 0.3rem;
+      font-size: 0.8rem;
+      cursor: pointer;
+      color: #ccc;
+      margin-bottom: 0.3rem;
+    }
     .opt-qty {
       width: 80px;
       text-align: center;
@@ -356,7 +389,8 @@ export class CardFormComponent {
   flavor = '';
   isGlobal = false;
   mapRegion = 'mistyhighlans';
-  oncePerSession = false;
+  drawLimit: 'unlimited' | 'session' | 'player' = 'unlimited';
+  triggerMode: 'immediate' | 'pending' = 'immediate';
   
   options: CardOption[] = [];
 
@@ -375,7 +409,9 @@ export class CardFormComponent {
           this.flavor = card.flavor || '';
           this.isGlobal = card.isGlobal || false;
           this.mapRegion = card.mapRegion || 'mistyhighlans';
-          this.oncePerSession = card.oncePerSession || false;
+          // Backward compatibility check inside effect
+          this.drawLimit = card.drawLimit || ((card as any).oncePerSession ? 'session' : 'unlimited');
+          this.triggerMode = card.triggerMode || 'immediate';
           
           this.options = card.options ? JSON.parse(JSON.stringify(card.options)) : [];
         }
@@ -401,7 +437,15 @@ export class CardFormComponent {
 
   onSubmit() {
     if (this.title && this.description) {
-      const cleanOptions = this.options.filter(opt => opt.text.trim() !== '');
+      const processedOptions = this.options.map(opt => {
+        // Eğer kullanıcı sadece hedef seçip metin yazmayı unuttuysa otomatik doldur
+        if ((!opt.text || opt.text.trim() === '') && 
+            (opt.nextCardId !== undefined && opt.nextCardId !== 'undefined' || 
+             opt.winCardId !== undefined && opt.winCardId !== 'undefined')) {
+          return { ...opt, text: 'Devam Et...' };
+        }
+        return opt;
+      }).filter(opt => opt.text && opt.text.trim() !== '');
       
       const cardData = {
         title: this.title,
@@ -410,8 +454,9 @@ export class CardFormComponent {
         flavor: this.flavor || undefined,
         isGlobal: this.isGlobal,
         mapRegion: this.isGlobal ? undefined : this.mapRegion,
-        oncePerSession: this.oncePerSession,
-        options: cleanOptions.length > 0 ? cleanOptions : undefined
+        drawLimit: this.drawLimit,
+        triggerMode: this.triggerMode,
+        options: processedOptions.length > 0 ? processedOptions : undefined
       };
 
       if (this.isEditMode && this.editingId) {
@@ -443,7 +488,8 @@ export class CardFormComponent {
     this.flavor = '';
     this.isGlobal = false;
     this.mapRegion = 'mistyhighlans';
-    this.oncePerSession = false;
+    this.drawLimit = 'unlimited';
+    this.triggerMode = 'immediate';
     this.options = [];
   }
 }

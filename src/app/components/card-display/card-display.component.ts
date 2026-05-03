@@ -484,6 +484,15 @@ export class CardDisplayComponent {
     this.pendingDiceOption.set(null); // Reset state
     
     if (nextCardId && nextCardId !== 'undefined') {
+      const nextCard = this.cardService.cards().find(c => c.id === nextCardId);
+      
+      // Check if it should be pending
+      if (nextCard && nextCard.triggerMode === 'pending' && this.cardService.isSessionActive() && this.cardService.activePlayerId()) {
+        this.cardService.addPendingEvent(this.cardService.activePlayerId()!, nextCardId);
+        this.closeCard();
+        return;
+      }
+
       // Load next card!
       this.isFlipped.set(false);
       // Wait for flip back animation, then load new card

@@ -1,19 +1,25 @@
 import { Injectable, signal } from '@angular/core';
 import { EventCard } from '../models/event-card.model';
+import { Player } from '../models/player.model';
 
 @Injectable({
   providedIn: 'root'
 })
 export class CardService {
   private readonly STORAGE_KEY = 'oziyama_event_cards';
-  
+
   // Reactive state for the cards
   cards = signal<EventCard[]>([]);
   editingCard = signal<EventCard | null>(null);
 
   // Session State
   isSessionActive = signal<boolean>(false);
+  isSettingUpSession = signal<boolean>(false);
   drawnCardsInSession = signal<Set<string>>(new Set());
+
+  // Players
+  players = signal<Player[]>([]);
+  activePlayerId = signal<string | null>(null);
 
   constructor() {
     this.loadCards();
@@ -100,7 +106,7 @@ export class CardService {
   }
 
   updateCard(updatedCard: EventCard): void {
-    this.cards.update(cards => 
+    this.cards.update(cards =>
       cards.map(c => c.id === updatedCard.id ? updatedCard : c)
     );
     this.saveCards();
@@ -112,26 +118,34 @@ export class CardService {
   }
 
   // ...
-  
-  getRandomCard(currentMap: string): EventCard | null {
+
+  getRandomCard(currentMap: string, playerId?: string | null): EventCard | null {
     // Haritadan rastgele çekilirken 'chain event' tipli kartlar gelmesin
     // Ve kart global değilse sadece seçilen haritanın kartları gelsin
     const currentCards = this.cards().filter(c => {
       if (c.type === 'chain event') return false;
-      
+
       // Session açıksa ve bu kart o map'te zaten bir kez çekildiyse filtrele
-      if (this.isSessionActive() && c.oncePerSession) {
-        if (this.drawnCardsInSession().has(`${currentMap}_${c.id}`)) {
-          return false; // Bu mapte daha önce çekilmiş, tekrar getirme
+      if (this.isSessionActive()) {
+        const limit = c.drawLimit || ((c as any).oncePerSession ? 'session' : 'unlimited');
+
+        if (limit === 'session') {
+          if (this.drawnCardsInSession().has(`${currentMap}_${c.id}_session`)) {
+            return false;
+          }
+        } else if (limit === 'player' && playerId) {
+          if (this.drawnCardsInSession().has(`${currentMap}_${c.id}_player_${playerId}`)) {
+            return false;
+          }
         }
       }
 
       if (c.isGlobal) return true;
       return c.mapRegion === currentMap;
     });
-    
+
     if (currentCards.length === 0) return null;
-    
+
     const randomIndex = Math.floor(Math.random() * currentCards.length);
     return currentCards[randomIndex];
   }
@@ -139,13 +153,63 @@ export class CardService {
   // Draw state management
   activeCard = signal<EventCard | null>(null);
 
-  drawRandomCard(currentMap: string) {
-    const card = this.getRandomCard(currentMap);
+  addPendingEvent(playerId: string, cardId: string) {
+    this.players.update(players => players.map(p => {
+      if (p.id === playerId) {
+        const pending = p.pendingEvents || [];
+        if (!pending.includes(cardId)) {
+          return { ...p, pendingEvents: [...pending, cardId] };
+        }
+      }
+      return p;
+    }));
+  }
+
+  removePendingEvent(playerId: string, cardId: string) {
+    this.players.update(players => players.map(p => {
+      if (p.id === playerId && p.pendingEvents) {
+        return { ...p, pendingEvents: p.pendingEvents.filter(id => id !== cardId) };
+      }
+      return p;
+    }));
+  }
+
+  drawRandomCard(currentMap: string, playerId?: string | null) {
+    // Check pending events first
+    if (playerId && this.isSessionActive()) {
+      const player = this.players().find(p => p.id === playerId);
+      if (player && player.pendingEvents && player.pendingEvents.length > 0) {
+        // 25% chance to trigger a pending event
+        if (Math.random() < 0.30) {
+          const pendingIndex = Math.floor(Math.random() * player.pendingEvents.length);
+          const pendingCardId = player.pendingEvents[pendingIndex];
+          const pendingCard = this.cards().find(c => c.id === pendingCardId);
+
+          if (pendingCard) {
+            this.removePendingEvent(playerId, pendingCardId);
+            this.activeCard.set(pendingCard);
+            return;
+          } else {
+            // Card might have been deleted from DB but was still in pending list
+            this.removePendingEvent(playerId, pendingCardId);
+          }
+        }
+      }
+    }
+
+    const card = this.getRandomCard(currentMap, playerId);
     if (card) {
-      if (this.isSessionActive() && card.oncePerSession) {
+      if (this.isSessionActive()) {
+        const limit = card.drawLimit || ((card as any).oncePerSession ? 'session' : 'unlimited');
         const newSet = new Set(this.drawnCardsInSession());
-        newSet.add(`${currentMap}_${card.id}`);
-        this.drawnCardsInSession.set(newSet);
+
+        if (limit === 'session') {
+          newSet.add(`${currentMap}_${card.id}_session`);
+          this.drawnCardsInSession.set(newSet);
+        } else if (limit === 'player' && playerId) {
+          newSet.add(`${currentMap}_${card.id}_player_${playerId}`);
+          this.drawnCardsInSession.set(newSet);
+        }
       }
       this.activeCard.set(card);
     } else {
@@ -153,14 +217,34 @@ export class CardService {
     }
   }
 
-  startSession() {
+  startSession(playersData: Omit<Player, 'id'>[]) {
     this.isSessionActive.set(true);
     this.drawnCardsInSession.set(new Set());
+
+    const newPlayers = playersData.map((p, index) => ({
+      id: `p${index + 1}_${Date.now()}`,
+      name: p.name,
+      color: p.color,
+      pendingEvents: []
+    }));
+
+    this.players.set(newPlayers);
+
+    if (newPlayers.length > 0) {
+      this.activePlayerId.set(newPlayers[0].id);
+    }
   }
 
   endSession() {
     this.isSessionActive.set(false);
     this.drawnCardsInSession.set(new Set());
+    this.players.set([]);
+    this.activePlayerId.set(null);
+    this.closeActiveCard();
+  }
+
+  setActivePlayer(id: string) {
+    this.activePlayerId.set(id);
   }
 
   closeActiveCard() {

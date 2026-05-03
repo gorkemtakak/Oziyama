@@ -14,7 +14,7 @@ import { CardService } from '../../services/card.service';
       <div class="actions">
         <!-- SESSION CONTROLS -->
         @if (!cardService.isSessionActive()) {
-          <button class="session-btn start" (click)="cardService.startSession()">
+          <button class="session-btn start" (click)="cardService.isSettingUpSession.set(true)">
             ▶️ Oyun Başlat
           </button>
         } @else {

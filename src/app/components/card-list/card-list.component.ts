@@ -37,11 +37,19 @@ import { CardService } from '../../services/card.service';
             <div class="card-header">
               <div class="type-group">
                 <span class="type">{{ card.type }}</span>
-                @if (card.oncePerSession) {
-                  <span class="once-badge" title="Session başına 1 kez">1x</span>
+                @if (card.drawLimit === 'session' || $any(card).oncePerSession) {
+                  <span class="once-badge" title="Session başına 1 kez">1x Sess</span>
+                }
+                @if (card.drawLimit === 'player') {
+                  <span class="player-badge" title="Oyuncu başına 1 kez">1x P</span>
                 }
               </div>
               <div class="actions">
+                @if (cardService.isSessionActive() && (card.drawLimit === 'session' || $any(card).oncePerSession || card.drawLimit === 'player')) {
+                  <span class="draw-status" [class.drawn]="isCardDrawn(card)" [title]="isCardDrawn(card) ? 'Bu sessionda çekildi' : 'Torbada'">
+                    {{ isCardDrawn(card) ? '🔴 Çekildi' : '🟢 Torbada' }}
+                  </span>
+                }
                 <button class="edit-btn" (click)="editCard(card)" title="Edit">✎</button>
                 <button class="delete-btn" (click)="deleteCard(card.id)" title="Delete">×</button>
               </div>
@@ -137,6 +145,14 @@ import { CardService } from '../../services/card.service';
       border-radius: 3px;
       font-weight: bold;
     }
+    .player-badge {
+      font-size: 0.6rem;
+      background: var(--accent-blue);
+      color: var(--bg-dark);
+      padding: 0.1rem 0.3rem;
+      border-radius: 3px;
+      font-weight: bold;
+    }
     .actions {
       display: flex;
       gap: 0.5rem;
@@ -155,6 +171,22 @@ import { CardService } from '../../services/card.service';
     }
     .edit-btn:hover, .delete-btn:hover {
       opacity: 1;
+    }
+    .draw-status {
+      font-size: 0.7rem;
+      font-weight: bold;
+      padding: 0.2rem 0.4rem;
+      border-radius: 4px;
+      background: rgba(0,0,0,0.3);
+      margin-right: 0.5rem;
+    }
+    .draw-status.drawn {
+      color: var(--accent-red);
+      border: 1px solid rgba(231, 76, 60, 0.3);
+    }
+    .draw-status:not(.drawn) {
+      color: var(--accent-green);
+      border: 1px solid rgba(46, 204, 113, 0.3);
     }
     h4 {
       font-family: var(--font-ui);
@@ -179,7 +211,7 @@ import { CardService } from '../../services/card.service';
   `]
 })
 export class CardListComponent {
-  private cardService = inject(CardService);
+  public cardService = inject(CardService);
   
   // Expose the signal
   cards = this.cardService.cards;
@@ -200,6 +232,24 @@ export class CardListComponent {
       return matchesSearch && matchesType;
     });
   });
+
+  isCardDrawn(card: any): boolean {
+    if (!this.cardService.isSessionActive()) return false;
+    
+    const id = card.id;
+    const limit = card.drawLimit || (card.oncePerSession ? 'session' : 'unlimited');
+    const drawnSet = this.cardService.drawnCardsInSession();
+    
+    // Check if drawn on ANY map for the "session" limit if it's Global?
+    // Or just check if any key in the set contains this card ID.
+    // The keys are formatted as `${currentMap}_${card.id}_session` or `${currentMap}_${card.id}_player_${playerId}`
+    
+    for (const key of drawnSet) {
+      if (key.includes(`_${id}_`)) return true;
+    }
+    
+    return false;
+  }
 
   editCard(card: any) {
     this.cardService.setEditingCard(card);

@@ -10,7 +10,7 @@
     "test": "ng test",
     "electron": "wait-on http://localhost:4200 && electron .",
     "electron:build": "tsc -p tsconfig.electron.json",
-    "dev": "npm run electron:build && concurrently \"ng serve\" \"npm run electron\""
+    "dev": "npm run electron:build && concurrently --kill-others \"ng serve\" \"npm run electron\""
   },
   "private": true,
   "dependencies": {
