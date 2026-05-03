@@ -20,5 +20,6 @@ export interface EventCard {
   options?: CardOption[];
   isGlobal?: boolean;
   mapRegion?: string;
+  oncePerSession?: boolean;
   createdAt: Date;
 }

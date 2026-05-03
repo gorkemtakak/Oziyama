@@ -11,6 +11,10 @@ export class CardService {
   cards = signal<EventCard[]>([]);
   editingCard = signal<EventCard | null>(null);
 
+  // Session State
+  isSessionActive = signal<boolean>(false);
+  drawnCardsInSession = signal<Set<string>>(new Set());
+
   constructor() {
     this.loadCards();
   }
@@ -114,6 +118,14 @@ export class CardService {
     // Ve kart global değilse sadece seçilen haritanın kartları gelsin
     const currentCards = this.cards().filter(c => {
       if (c.type === 'chain event') return false;
+      
+      // Session açıksa ve bu kart o map'te zaten bir kez çekildiyse filtrele
+      if (this.isSessionActive() && c.oncePerSession) {
+        if (this.drawnCardsInSession().has(`${currentMap}_${c.id}`)) {
+          return false; // Bu mapte daha önce çekilmiş, tekrar getirme
+        }
+      }
+
       if (c.isGlobal) return true;
       return c.mapRegion === currentMap;
     });
@@ -130,10 +142,25 @@ export class CardService {
   drawRandomCard(currentMap: string) {
     const card = this.getRandomCard(currentMap);
     if (card) {
+      if (this.isSessionActive() && card.oncePerSession) {
+        const newSet = new Set(this.drawnCardsInSession());
+        newSet.add(`${currentMap}_${card.id}`);
+        this.drawnCardsInSession.set(newSet);
+      }
       this.activeCard.set(card);
     } else {
-      alert('Bu haritaya ait geçerli bir olay kartı bulunamadı!');
+      alert('Bu haritaya ait geçerli/çekilebilir bir olay kartı bulunamadı!');
     }
+  }
+
+  startSession() {
+    this.isSessionActive.set(true);
+    this.drawnCardsInSession.set(new Set());
+  }
+
+  endSession() {
+    this.isSessionActive.set(false);
+    this.drawnCardsInSession.set(new Set());
   }
 
   closeActiveCard() {

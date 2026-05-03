@@ -46,6 +46,11 @@ import { CardType, CardOption } from '../../models/event-card.model';
                 <option value="fullmap">Dünya Haritası (Full Map)</option>
               </select>
             }
+            
+            <label class="checkbox-label mt-2" style="color: var(--accent-gold);">
+              <input type="checkbox" [(ngModel)]="oncePerSession" name="oncePerSession">
+              Bu kart session boyunca (bu mapte) sadece 1 kez çekilebilir.
+            </label>
           </div>
           
           <div class="form-group">
@@ -351,6 +356,7 @@ export class CardFormComponent {
   flavor = '';
   isGlobal = false;
   mapRegion = 'mistyhighlans';
+  oncePerSession = false;
   
   options: CardOption[] = [];
 
@@ -369,6 +375,7 @@ export class CardFormComponent {
           this.flavor = card.flavor || '';
           this.isGlobal = card.isGlobal || false;
           this.mapRegion = card.mapRegion || 'mistyhighlans';
+          this.oncePerSession = card.oncePerSession || false;
           
           this.options = card.options ? JSON.parse(JSON.stringify(card.options)) : [];
         }
@@ -403,6 +410,7 @@ export class CardFormComponent {
         flavor: this.flavor || undefined,
         isGlobal: this.isGlobal,
         mapRegion: this.isGlobal ? undefined : this.mapRegion,
+        oncePerSession: this.oncePerSession,
         options: cleanOptions.length > 0 ? cleanOptions : undefined
       };
 
@@ -435,6 +443,7 @@ export class CardFormComponent {
     this.flavor = '';
     this.isGlobal = false;
     this.mapRegion = 'mistyhighlans';
+    this.oncePerSession = false;
     this.options = [];
   }
 }

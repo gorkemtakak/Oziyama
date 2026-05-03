@@ -1,4 +1,5 @@
-import { Component, EventEmitter, Output, Input } from '@angular/core';
+import { Component, EventEmitter, Output, Input, inject } from '@angular/core';
+import { CardService } from '../../services/card.service';
 
 @Component({
   selector: 'app-navbar',
@@ -11,6 +12,19 @@ import { Component, EventEmitter, Output, Input } from '@angular/core';
         <span class="subtitle">Event Manager</span>
       </div>
       <div class="actions">
+        <!-- SESSION CONTROLS -->
+        @if (!cardService.isSessionActive()) {
+          <button class="session-btn start" (click)="cardService.startSession()">
+            ▶️ Oyun Başlat
+          </button>
+        } @else {
+          <button class="session-btn end" (click)="cardService.endSession()">
+            ⏹️ Oyunu Bitir
+          </button>
+        }
+        
+        <div class="divider"></div>
+
         <button 
           [class.active]="currentView === 'map'" 
           (click)="viewChange.emit('map')">
@@ -74,9 +88,36 @@ import { Component, EventEmitter, Output, Input } from '@angular/core';
       border-color: var(--accent-gold);
       background: rgba(212, 175, 55, 0.1);
     }
+    .divider {
+      width: 1px;
+      height: 24px;
+      background: rgba(255,255,255,0.1);
+      margin: 0 0.5rem;
+    }
+    .session-btn {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+    .session-btn.start {
+      color: var(--accent-green) !important;
+      border-color: var(--accent-green) !important;
+    }
+    .session-btn.start:hover {
+      background: rgba(46, 204, 113, 0.1) !important;
+    }
+    .session-btn.end {
+      color: var(--accent-red) !important;
+      border-color: var(--accent-red) !important;
+    }
+    .session-btn.end:hover {
+      background: rgba(231, 76, 60, 0.1) !important;
+    }
   `]
 })
 export class NavbarComponent {
+  cardService = inject(CardService);
+  
   @Input() currentView: 'map' | 'manager' = 'map';
   @Output() viewChange = new EventEmitter<'map' | 'manager'>();
 }

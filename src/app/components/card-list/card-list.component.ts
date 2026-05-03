@@ -35,7 +35,12 @@ import { CardService } from '../../services/card.service';
         @for (card of filteredCards(); track card.id) {
           <div class="mini-card" [class]="card.type.replace(' ', '-')">
             <div class="card-header">
-              <span class="type">{{ card.type }}</span>
+              <div class="type-group">
+                <span class="type">{{ card.type }}</span>
+                @if (card.oncePerSession) {
+                  <span class="once-badge" title="Session başına 1 kez">1x</span>
+                }
+              </div>
               <div class="actions">
                 <button class="edit-btn" (click)="editCard(card)" title="Edit">✎</button>
                 <button class="delete-btn" (click)="deleteCard(card.id)" title="Delete">×</button>
@@ -118,6 +123,19 @@ import { CardService } from '../../services/card.service';
       text-transform: uppercase;
       color: var(--text-muted);
       letter-spacing: 1px;
+    }
+    .type-group {
+      display: flex;
+      gap: 0.5rem;
+      align-items: center;
+    }
+    .once-badge {
+      font-size: 0.6rem;
+      background: var(--accent-gold);
+      color: var(--bg-dark);
+      padding: 0.1rem 0.3rem;
+      border-radius: 3px;
+      font-weight: bold;
     }
     .actions {
       display: flex;
