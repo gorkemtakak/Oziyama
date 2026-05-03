@@ -1,0 +1,41 @@
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem;
+  transition: max-width 0.3s ease;
+}
+
+.container.full-width {
+  max-width: 100%;
+  padding: 0;
+}
+
+.section-divider {
+  border: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--accent-gold), transparent);
+  opacity: 0.3;
+  margin: 3rem 0;
+}
+
+.management-section {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+@media (min-width: 768px) {
+  .management-section {
+    flex-direction: row;
+    align-items: flex-start;
+  }
+  
+  app-card-form {
+    flex: 1;
+    min-width: 350px;
+  }
+  
+  app-card-list {
+    flex: 2;
+  }
+}

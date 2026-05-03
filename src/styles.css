@@ -1,1 +1,75 @@
-/* You can add global styles to this file, and also import other style files */
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400..900&family=Inter:wght@300;400;600&display=swap');
+
+:root {
+  /* Colors */
+  --bg-dark: #0f1115;
+  --bg-panel: #1a1d24;
+  --bg-card: #252932;
+  
+  --text-main: #e2e8f0;
+  --text-muted: #94a3b8;
+  
+  --accent-gold: #d4af37;
+  --accent-gold-hover: #f1c40f;
+  --accent-red: #e74c3c;
+  --accent-blue: #3498db;
+  --accent-green: #2ecc71;
+  --accent-purple: #9b59b6;
+
+  /* Fonts */
+  --font-fantasy: 'Cinzel', serif;
+  --font-ui: 'Inter', sans-serif;
+
+  /* Borders & Shadows */
+  --border-gold: 1px solid rgba(212, 175, 55, 0.3);
+  --shadow-glow: 0 0 15px rgba(212, 175, 55, 0.15);
+  --shadow-card: 0 4px 6px rgba(0, 0, 0, 0.5);
+  
+  /* Transitions */
+  --trans-fast: 0.2s ease;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: var(--font-ui);
+  background-color: var(--bg-dark);
+  color: var(--text-main);
+  background-image: radial-gradient(circle at 50% 0%, #1e222a 0%, #0f1115 70%);
+  background-attachment: fixed;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-fantasy);
+  font-weight: 600;
+  letter-spacing: 1px;
+}
+
+button {
+  font-family: var(--font-fantasy);
+  cursor: pointer;
+  border: none;
+  background: none;
+  transition: all var(--trans-fast);
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: var(--bg-dark);
+}
+::-webkit-scrollbar-thumb {
+  background: #333;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--accent-gold);
+}
