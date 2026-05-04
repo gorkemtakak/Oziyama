@@ -40,9 +40,6 @@ import { CardService } from '../../services/card.service';
                 @if (card.drawLimit === 'session' || $any(card).oncePerSession) {
                   <span class="once-badge" title="Session başına 1 kez">1x Sess</span>
                 }
-                @if (card.drawLimit === 'player') {
-                  <span class="player-badge" title="Oyuncu başına 1 kez">1x P</span>
-                }
               </div>
               <div class="actions">
                 @if (cardService.isSessionActive() && (card.drawLimit === 'session' || $any(card).oncePerSession || card.drawLimit === 'player')) {

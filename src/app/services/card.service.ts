@@ -119,11 +119,16 @@ export class CardService {
 
   // ...
 
-  getRandomCard(currentMap: string, playerId?: string | null): EventCard | null {
+  getRandomCard(currentMap: string, playerId?: string | null, markerId?: string): EventCard | null {
     // Haritadan rastgele çekilirken 'chain event' tipli kartlar gelmesin
     // Ve kart global değilse sadece seçilen haritanın kartları gelsin
     const currentCards = this.cards().filter(c => {
       if (c.type === 'chain event') return false;
+
+      // Marker filtrelemesi varsa ve kartın allowedMarkers listesi boş değilse kontrol et
+      if (markerId && c.allowedMarkers && c.allowedMarkers.length > 0) {
+        if (!c.allowedMarkers.includes(markerId)) return false;
+      }
 
       // Session açıksa ve bu kart o map'te zaten bir kez çekildiyse filtrele
       if (this.isSessionActive()) {
@@ -174,7 +179,7 @@ export class CardService {
     }));
   }
 
-  drawRandomCard(currentMap: string, playerId?: string | null) {
+  drawRandomCard(currentMap: string, playerId?: string | null, markerId?: string) {
     // Check pending events first
     if (playerId && this.isSessionActive()) {
       const player = this.players().find(p => p.id === playerId);
@@ -197,7 +202,7 @@ export class CardService {
       }
     }
 
-    const card = this.getRandomCard(currentMap, playerId);
+    const card = this.getRandomCard(currentMap, playerId, markerId);
     if (card) {
       if (this.isSessionActive()) {
         const limit = card.drawLimit || ((card as any).oncePerSession ? 'session' : 'unlimited');

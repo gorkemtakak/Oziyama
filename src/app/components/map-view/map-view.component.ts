@@ -306,7 +306,7 @@ export class MapViewComponent {
   triggerEvent(marker: MapMarker) {
     if (marker.type === 'castle') {
       console.log('Marker clicked:', marker);
-      this.cardService.drawRandomCard(this.currentMap, this.cardService.activePlayerId());
+      this.cardService.drawRandomCard(this.currentMap, this.cardService.activePlayerId(), marker.id);
     }
   }
 }

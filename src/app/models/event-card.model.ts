@@ -22,5 +22,6 @@ export interface EventCard {
   mapRegion?: string;
   drawLimit?: 'unlimited' | 'session' | 'player';
   triggerMode?: 'immediate' | 'pending';
+  allowedMarkers?: string[];
   createdAt: Date;
 }
