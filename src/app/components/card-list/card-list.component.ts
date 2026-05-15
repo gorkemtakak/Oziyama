@@ -38,11 +38,14 @@ import { CardService } from '../../services/card.service';
               <div class="type-group">
                 <span class="type">{{ card.type }}</span>
                 @if (card.drawLimit === 'session' || $any(card).oncePerSession) {
-                  <span class="once-badge" title="Session başına 1 kez">1x Sess</span>
+                  <span class="once-badge" title="Session başına 1 kez (Tüm Haritalar)">1x Sess</span>
+                }
+                @if (card.drawLimit === 'region') {
+                  <span class="region-badge" title="Harita bölgesi başına 1 kez">1x Reg</span>
                 }
               </div>
               <div class="actions">
-                @if (cardService.isSessionActive() && (card.drawLimit === 'session' || $any(card).oncePerSession || card.drawLimit === 'player')) {
+                @if (cardService.isSessionActive() && (card.drawLimit === 'session' || card.drawLimit === 'region' || $any(card).oncePerSession || card.drawLimit === 'player')) {
                   <span class="draw-status" [class.drawn]="isCardDrawn(card)" [title]="isCardDrawn(card) ? 'Bu sessionda çekildi' : 'Torbada'">
                     {{ isCardDrawn(card) ? '🔴 Çekildi' : '🟢 Torbada' }}
                   </span>
@@ -134,22 +137,16 @@ import { CardService } from '../../services/card.service';
       gap: 0.5rem;
       align-items: center;
     }
-    .once-badge {
+    .once-badge, .player-badge, .region-badge {
       font-size: 0.6rem;
-      background: var(--accent-gold);
-      color: var(--bg-dark);
       padding: 0.1rem 0.3rem;
       border-radius: 3px;
       font-weight: bold;
+      text-transform: uppercase;
     }
-    .player-badge {
-      font-size: 0.6rem;
-      background: var(--accent-blue);
-      color: var(--bg-dark);
-      padding: 0.1rem 0.3rem;
-      border-radius: 3px;
-      font-weight: bold;
-    }
+    .once-badge { background: #e67e22; color: white; }
+    .player-badge { background: #3498db; color: white; }
+    .region-badge { background: #9b59b6; color: white; }
     .actions {
       display: flex;
       gap: 0.5rem;

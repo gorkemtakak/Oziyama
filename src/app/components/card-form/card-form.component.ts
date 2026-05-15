@@ -96,6 +96,10 @@ import { CardType, CardOption } from '../../models/event-card.model';
                 Session başına sadece 1 kez (Tüm Harita İçin)
               </label>
               <label class="radio-label">
+                <input type="radio" [(ngModel)]="drawLimit" name="drawLimit" value="region">
+                Harita bölgesi başına sadece 1 kez
+              </label>
+              <label class="radio-label">
                 <input type="radio" [(ngModel)]="drawLimit" name="drawLimit" value="player">
                 Her oyuncu için session başına 1 kez
               </label>
@@ -564,7 +568,7 @@ export class CardFormComponent {
   flavor = '';
   isGlobal = false;
   mapRegion = 'mistyhighlans';
-  drawLimit: 'unlimited' | 'session' | 'player' = 'unlimited';
+  drawLimit: 'unlimited' | 'session' | 'player' | 'region' = 'unlimited';
   triggerMode: 'immediate' | 'pending' = 'immediate';
   
   options: CardOption[] = [];
@@ -620,7 +624,9 @@ export class CardFormComponent {
         { id: 'm10', x: 70, y: 45 }, { id: 'm11', x: 86, y: 35 }, { id: 'm12', x: 37, y: 63 },
         { id: 'm13', x: 40, y: 72 }, { id: 'm14', x: 56, y: 66 }, { id: 'm15', x: 18, y: 69 },
         { id: 'm16', x: 30, y: 80 }, { id: 'm17', x: 26, y: 86 }, { id: 'm18', x: 35, y: 86 },
-        { id: 'm19', x: 46, y: 85 }, { id: 'm21', x: 88, y: 60 }, { id: 'm22', x: 83, y: 73 }
+        { id: 'm19', x: 46, y: 85 }, { id: 'm21', x: 88, y: 60 }, { id: 'm22', x: 83, y: 73 },
+        { id: 'm23', x: 13, y: 35 }, { id: 'm24', x: 19, y: 43 }, { id: 'm25', x: 12, y: 58 },
+        { id: 'm26', x: 22, y: 61 }, { id: 'm27', x: 7, y: 76 }, { id: 'm28', x: 45, y: 41 }
       ];
     }
     return [

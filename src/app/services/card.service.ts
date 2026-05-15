@@ -135,10 +135,17 @@ export class CardService {
         const limit = c.drawLimit || ((c as any).oncePerSession ? 'session' : 'unlimited');
 
         if (limit === 'session') {
-          if (this.drawnCardsInSession().has(`${currentMap}_${c.id}_session`)) {
+          // Global session limit (across all maps)
+          if (this.drawnCardsInSession().has(`${c.id}_session_global`)) {
+            return false;
+          }
+        } else if (limit === 'region') {
+          // Region specific limit
+          if (this.drawnCardsInSession().has(`${currentMap}_${c.id}_region`)) {
             return false;
           }
         } else if (limit === 'player' && playerId) {
+          // Player specific limit (per map)
           if (this.drawnCardsInSession().has(`${currentMap}_${c.id}_player_${playerId}`)) {
             return false;
           }
@@ -209,7 +216,10 @@ export class CardService {
         const newSet = new Set(this.drawnCardsInSession());
 
         if (limit === 'session') {
-          newSet.add(`${currentMap}_${card.id}_session`);
+          newSet.add(`${card.id}_session_global`);
+          this.drawnCardsInSession.set(newSet);
+        } else if (limit === 'region') {
+          newSet.add(`${currentMap}_${card.id}_region`);
           this.drawnCardsInSession.set(newSet);
         } else if (limit === 'player' && playerId) {
           newSet.add(`${currentMap}_${card.id}_player_${playerId}`);

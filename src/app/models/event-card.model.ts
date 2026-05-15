@@ -20,7 +20,7 @@ export interface EventCard {
   options?: CardOption[];
   isGlobal?: boolean;
   mapRegion?: string;
-  drawLimit?: 'unlimited' | 'session' | 'player';
+  drawLimit?: 'unlimited' | 'session' | 'player' | 'region';
   triggerMode?: 'immediate' | 'pending';
   allowedMarkers?: string[];
   createdAt: Date;

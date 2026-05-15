@@ -6,7 +6,7 @@ interface MapMarker {
   id: string;
   x: number; // percentage
   y: number; // percentage
-  type: 'castle' | 'travel';
+  type: 'castle' | 'travel' | 'added-castle';
   targetMap?: 'mistyhighlans' | 'fullmap'; // Used if type is 'travel'
 }
 
@@ -56,6 +56,16 @@ interface MapMarker {
           @if (marker.type === 'castle') {
             <!-- Castle Marker (Invisible Hotspot) -->
             <div class="marker castle-marker"
+                 [style.left.%]="marker.x"
+                 [style.top.%]="marker.y"
+                 (click)="triggerEvent(marker)"
+                 title="Olay Kartı Çek">
+            </div>
+          }
+
+          @if (marker.type === 'added-castle') {
+            <!-- Added Visible Castle Marker -->
+            <div class="marker added-castle-marker"
                  [style.left.%]="marker.x"
                  [style.top.%]="marker.y"
                  (click)="triggerEvent(marker)"
@@ -247,6 +257,26 @@ interface MapMarker {
       0% { transform: scale(1); opacity: 0.6; }
       100% { transform: scale(2.5); opacity: 0; }
     }
+
+    /* Visible Castle Marker for newly added points */
+    .added-castle-marker {
+      width: 28px;
+      height: 28px;
+      background-image: url('/assets/WhatsApp Image 2026-05-05 at 2.25.52 PM.jpeg');
+      background-size: 140%; /* Zoom in to hide white outer ring */
+      background-position: center;
+      background-repeat: no-repeat;
+      border-radius: 50%;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.6);
+      transition: all 0.2s;
+      cursor: pointer;
+      z-index: 100;
+      border: 1px solid rgba(0,0,0,0.5); /* Subtle dark border to blend in */
+    }
+    .added-castle-marker:hover {
+      transform: translate(-50%, -50%) scale(1.15);
+      box-shadow: 0 0 15px rgba(212, 175, 55, 0.8);
+    }
   `]
 })
 export class MapViewComponent {
@@ -277,7 +307,13 @@ export class MapViewComponent {
     { id: 'm18', x: 35, y: 86, type: 'castle' },
     { id: 'm19', x: 46, y: 85, type: 'castle' },
     { id: 'm21', x: 88, y: 60, type: 'castle' },
-    { id: 'm22', x: 83, y: 73, type: 'castle' }
+    { id: 'm22', x: 83, y: 73, type: 'castle' },
+    { id: 'm23', x: 13, y: 35, type: 'added-castle' },
+    { id: 'm24', x: 19, y: 43, type: 'added-castle' },
+    { id: 'm25', x: 12, y: 58, type: 'added-castle' },
+    { id: 'm26', x: 22, y: 61, type: 'added-castle' },
+    { id: 'm27', x: 7, y: 76, type: 'added-castle' },
+    { id: 'm28', x: 45, y: 41, type: 'added-castle' }
   ];
 
   // Sample markers for Full Map
@@ -304,7 +340,7 @@ export class MapViewComponent {
   }
 
   triggerEvent(marker: MapMarker) {
-    if (marker.type === 'castle') {
+    if (marker.type === 'castle' || marker.type === 'added-castle') {
       console.log('Marker clicked:', marker);
       this.cardService.drawRandomCard(this.currentMap, this.cardService.activePlayerId(), marker.id);
     }
