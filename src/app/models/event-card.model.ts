@@ -1,4 +1,4 @@
-export type CardType = 'event' | 'encounter' | 'treasure' | 'curse' | 'chain event';
+export type CardType = 'event' | 'encounter' | 'treasure' | 'curse' | 'chain event' | 'merchant';
 
 export interface CardOption {
   id: string; // Unique ID for the option
@@ -8,6 +8,15 @@ export interface CardOption {
   nextCardId?: string; // used if requiresDice is false
   winCardId?: string; // used if requiresDice is true
   failCardId?: string; // used if requiresDice is true
+}
+
+export interface MerchantItem {
+  id: string;
+  name: string;
+  description: string;
+  price: number;
+  count?: number;
+  imageUrl?: string;
 }
 
 export interface EventCard {
@@ -24,4 +33,10 @@ export interface EventCard {
   triggerMode?: 'immediate' | 'pending';
   allowedMarkers?: string[];
   createdAt: Date;
+  
+  // Merchant fields
+  merchantImage?: string;
+  merchantName?: string;
+  merchantCoins?: number;
+  merchantItems?: MerchantItem[];
 }

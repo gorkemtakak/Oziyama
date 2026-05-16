@@ -89,6 +89,9 @@ export class CardService {
   drawCardById(id: string) {
     const card = this.cards().find(c => c.id === id);
     if (card) {
+      if (card.type === 'merchant') {
+        this.initializeMerchantState(card);
+      }
       this.activeCard.set(card);
     } else {
       console.error(`Card with id ${id} not found.`);
@@ -130,6 +133,13 @@ export class CardService {
         if (!c.allowedMarkers.includes(markerId)) return false;
       }
 
+      // Marker türü ve Kart türü eşleşme güvenliği:
+      if (markerId) {
+        const isMerchantMarker = markerId.startsWith('merch');
+        if (isMerchantMarker && c.type !== 'merchant') return false;
+        if (!isMerchantMarker && c.type === 'merchant') return false;
+      }
+
       // Session açıksa ve bu kart o map'te zaten bir kez çekildiyse filtrele
       if (this.isSessionActive()) {
         const limit = c.drawLimit || ((c as any).oncePerSession ? 'session' : 'unlimited');
@@ -164,6 +174,58 @@ export class CardService {
 
   // Draw state management
   activeCard = signal<EventCard | null>(null);
+  merchantSessionStates = signal<{ [cardId: string]: { coins: number, items: { [itemId: string]: number } } }>({});
+
+  getMerchantState(cardId: string) {
+    if (!this.isSessionActive()) return null;
+    return this.merchantSessionStates()[cardId] || null;
+  }
+
+  initializeMerchantState(card: EventCard) {
+    if (!this.isSessionActive() || card.type !== 'merchant') return;
+    
+    const states = this.merchantSessionStates();
+    if (!states[card.id]) {
+      const itemsMap: { [itemId: string]: number } = {};
+      if (card.merchantItems) {
+        card.merchantItems.forEach(item => {
+          itemsMap[item.id] = item.count !== undefined ? item.count : 1;
+        });
+      }
+      this.merchantSessionStates.set({
+        ...states,
+        [card.id]: {
+          coins: card.merchantCoins || 0,
+          items: itemsMap
+        }
+      });
+    }
+  }
+
+  updateMerchantSessionCoins(cardId: string, coins: number) {
+    if (!this.isSessionActive()) return;
+    const states = this.merchantSessionStates();
+    if (states[cardId]) {
+      this.merchantSessionStates.set({
+        ...states,
+        [cardId]: { ...states[cardId], coins }
+      });
+    }
+  }
+
+  updateMerchantSessionItemCount(cardId: string, itemId: string, newCount: number) {
+    if (!this.isSessionActive()) return;
+    const states = this.merchantSessionStates();
+    if (states[cardId]) {
+      this.merchantSessionStates.set({
+        ...states,
+        [cardId]: { 
+          ...states[cardId], 
+          items: { ...states[cardId].items, [itemId]: newCount }
+        }
+      });
+    }
+  }
 
   addPendingEvent(playerId: string, cardId: string) {
     this.players.update(players => players.map(p => {
@@ -226,6 +288,9 @@ export class CardService {
           this.drawnCardsInSession.set(newSet);
         }
       }
+      if (card.type === 'merchant') {
+        this.initializeMerchantState(card);
+      }
       this.activeCard.set(card);
     } else {
       alert('Bu haritaya ait geçerli/çekilebilir bir olay kartı bulunamadı!');
@@ -235,6 +300,7 @@ export class CardService {
   startSession(playersData: Omit<Player, 'id'>[]) {
     this.isSessionActive.set(true);
     this.drawnCardsInSession.set(new Set());
+    this.merchantSessionStates.set({});
 
     const newPlayers = playersData.map((p, index) => ({
       id: `p${index + 1}_${Date.now()}`,
@@ -253,6 +319,7 @@ export class CardService {
   endSession() {
     this.isSessionActive.set(false);
     this.drawnCardsInSession.set(new Set());
+    this.merchantSessionStates.set({});
     this.players.set([]);
     this.activePlayerId.set(null);
     this.closeActiveCard();

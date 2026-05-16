@@ -6,7 +6,7 @@ interface MapMarker {
   id: string;
   x: number; // percentage
   y: number; // percentage
-  type: 'castle' | 'travel' | 'added-castle';
+  type: 'castle' | 'travel' | 'added-castle' | 'merchant';
   targetMap?: 'mistyhighlans' | 'fullmap'; // Used if type is 'travel'
 }
 
@@ -70,6 +70,16 @@ interface MapMarker {
                  [style.top.%]="marker.y"
                  (click)="triggerEvent(marker)"
                  title="Olay Kartı Çek">
+            </div>
+          }
+          
+          @if (marker.type === 'merchant') {
+            <!-- Merchant Marker (Clickable Area for Merchant Bags) -->
+            <div class="marker merchant-marker"
+                 [style.left.%]="marker.x"
+                 [style.top.%]="marker.y"
+                 (click)="triggerEvent(marker)"
+                 title="Tüccar Kartı Çek">
             </div>
           }
           
@@ -277,6 +287,22 @@ interface MapMarker {
       transform: translate(-50%, -50%) scale(1.15);
       box-shadow: 0 0 15px rgba(212, 175, 55, 0.8);
     }
+
+    /* Merchant Marker Styles (Invisible/Subtle Clickable Area) */
+    .merchant-marker {
+      width: 35px;
+      height: 35px;
+      background-color: rgba(255, 215, 0, 0.0);
+      border: 2px solid transparent;
+      border-radius: 50%;
+      transition: all 0.2s;
+    }
+
+    .merchant-marker:hover {
+      background-color: rgba(255, 215, 0, 0.25);
+      border-color: rgba(255, 215, 0, 0.8);
+      box-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+    }
   `]
 })
 export class MapViewComponent {
@@ -287,33 +313,49 @@ export class MapViewComponent {
 
   // Sample markers for Misty Highlands
   mistyMarkers: MapMarker[] = [
-    { id: 'm1', x: 8, y: 41, type: 'castle' },
-    { id: 'm2', x: 34, y: 25, type: 'castle' },
-    { id: 'm3', x: 38, y: 36, type: 'castle' },
-    { id: 'm4', x: 34, y: 53, type: 'castle' },
-    { id: 'm5', x: 47, y: 44, type: 'castle' },
-    { id: 'm6', x: 64, y: 13, type: 'castle' },
-    { id: 'm7', x: 82, y: 7, type: 'castle' },
-    { id: 'm8', x: 76, y: 17, type: 'castle' },
-    { id: 'm9', x: 59, y: 36, type: 'castle' },
-    { id: 'm10', x: 70, y: 45, type: 'castle' },
-    { id: 'm11', x: 86, y: 35, type: 'castle' },
-    { id: 'm12', x: 37, y: 63, type: 'castle' },
-    { id: 'm13', x: 40, y: 72, type: 'castle' },
-    { id: 'm14', x: 56, y: 66, type: 'castle' },
-    { id: 'm15', x: 18, y: 69, type: 'castle' },
-    { id: 'm16', x: 30, y: 80, type: 'castle' },
-    { id: 'm17', x: 26, y: 86, type: 'castle' },
-    { id: 'm18', x: 35, y: 86, type: 'castle' },
-    { id: 'm19', x: 46, y: 85, type: 'castle' },
-    { id: 'm21', x: 88, y: 60, type: 'castle' },
-    { id: 'm22', x: 83, y: 73, type: 'castle' },
-    { id: 'm23', x: 13, y: 35, type: 'added-castle' },
-    { id: 'm24', x: 19, y: 43, type: 'added-castle' },
-    { id: 'm25', x: 12, y: 58, type: 'added-castle' },
-    { id: 'm26', x: 22, y: 61, type: 'added-castle' },
-    { id: 'm27', x: 7, y: 76, type: 'added-castle' },
-    { id: 'm28', x: 45, y: 41, type: 'added-castle' }
+    { id: 'event1', x: 8, y: 41, type: 'castle' },
+    { id: 'event2', x: 34, y: 25, type: 'castle' },
+    { id: 'event3', x: 38, y: 36, type: 'castle' },
+    { id: 'event4', x: 34, y: 53, type: 'castle' },
+    { id: 'event5', x: 47, y: 44, type: 'castle' },
+    { id: 'event6', x: 64, y: 13, type: 'castle' },
+    { id: 'event7', x: 82, y: 7, type: 'castle' },
+    { id: 'event8', x: 76, y: 17, type: 'castle' },
+    { id: 'event9', x: 59, y: 36, type: 'castle' },
+    { id: 'event10', x: 70, y: 45, type: 'castle' },
+    { id: 'event11', x: 86, y: 35, type: 'castle' },
+    { id: 'event12', x: 37, y: 63, type: 'castle' },
+    { id: 'event13', x: 40, y: 72, type: 'castle' },
+    { id: 'event14', x: 56, y: 66, type: 'castle' },
+    { id: 'event15', x: 18, y: 69, type: 'castle' },
+    { id: 'event16', x: 30, y: 80, type: 'castle' },
+    { id: 'event17', x: 26, y: 86, type: 'castle' },
+    { id: 'event18', x: 35, y: 86, type: 'castle' },
+    { id: 'event19', x: 46, y: 85, type: 'castle' },
+    { id: 'event21', x: 88, y: 60, type: 'castle' },
+    { id: 'event22', x: 83, y: 73, type: 'castle' },
+    { id: 'event23', x: 13, y: 35, type: 'added-castle' },
+    { id: 'event24', x: 19, y: 43, type: 'added-castle' },
+    { id: 'event25', x: 12, y: 58, type: 'added-castle' },
+    { id: 'event26', x: 22, y: 61, type: 'added-castle' },
+    { id: 'event27', x: 7, y: 76, type: 'added-castle' },
+    { id: 'event28', x: 45, y: 41, type: 'added-castle' },
+    // Merchant Markers (Bags)
+    { id: 'merch1', x: 14, y: 45, type: 'merchant' },
+    { id: 'merch2', x: 19, y: 78, type: 'merchant' },
+    { id: 'merch3', x: 29, y: 62, type: 'merchant' },
+    { id: 'merch4', x: 38, y: 45, type: 'merchant' },
+    { id: 'merch5', x: 38, y: 58, type: 'merchant' },
+    { id: 'merch6', x: 40, y: 26, type: 'merchant' },
+    { id: 'merch7', x: 49, y: 44, type: 'merchant' },
+    { id: 'merch8', x: 51, y: 56, type: 'merchant' },
+    { id: 'merch9', x: 56, y: 76, type: 'merchant' },
+    { id: 'merch10', x: 59, y: 27, type: 'merchant' },
+    { id: 'merch11', x: 65, y: 40, type: 'merchant' },
+    { id: 'merch12', x: 68, y: 16, type: 'merchant' },
+    { id: 'merch13', x: 71, y: 33, type: 'merchant' },
+    { id: 'merch14', x: 73, y: 68, type: 'merchant' },
+    { id: 'merch15', x: 78, y: 25, type: 'merchant' }
   ];
 
   // Sample markers for Full Map
@@ -340,7 +382,7 @@ export class MapViewComponent {
   }
 
   triggerEvent(marker: MapMarker) {
-    if (marker.type === 'castle' || marker.type === 'added-castle') {
+    if (marker.type === 'castle' || marker.type === 'added-castle' || marker.type === 'merchant') {
       console.log('Marker clicked:', marker);
       this.cardService.drawRandomCard(this.currentMap, this.cardService.activePlayerId(), marker.id);
     }

@@ -27,6 +27,7 @@ import { CardService } from '../../services/card.service';
             <option value="treasure">Treasure</option>
             <option value="curse">Curse</option>
             <option value="chain event">Chain Event</option>
+            <option value="merchant">Merchant</option>
           </select>
         </div>
       </div>
@@ -119,6 +120,7 @@ import { CardService } from '../../services/card.service';
     .mini-card.treasure { border-top-color: var(--accent-gold); }
     .mini-card.curse { border-top-color: var(--accent-purple); }
     .mini-card.chain-event { border-top-color: #e67e22; }
+    .mini-card.merchant { border-top-color: #1abc9c; } /* Teal color for merchant */
     
     .card-header {
       display: flex;
