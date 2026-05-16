@@ -162,6 +162,11 @@ export class CardService {
         }
       }
 
+      if (currentMap === 'fullmap') {
+        // Ana haritada global kartlar açılmaz, sadece o haritaya özel kartlar (eğer tanımlandıysa) açılır.
+        return c.mapRegion === 'fullmap';
+      }
+
       if (c.isGlobal) return true;
       return c.mapRegion === currentMap;
     });

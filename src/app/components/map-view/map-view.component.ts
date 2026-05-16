@@ -360,10 +360,6 @@ export class MapViewComponent {
 
   // Sample markers for Full Map
   fullMapMarkers: MapMarker[] = [
-    { id: 'f1', x: 24, y: 57, type: 'castle' }, // Ironhold
-    { id: 'f2', x: 54, y: 34, type: 'castle' }, // City of Dragons
-    { id: 'f3', x: 24, y: 24, type: 'castle' }, // Ellowyne
-    { id: 'f4', x: 88, y: 65, type: 'castle' }, // Vornhelm
     
     // Travel Marker to go to Misty Highlands (Approximate coordinates)
     { id: 'travel-misty', x: 74, y: 78, type: 'travel', targetMap: 'mistyhighlans' }

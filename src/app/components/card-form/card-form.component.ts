@@ -871,11 +871,8 @@ export class CardFormComponent {
         { id: 'merch10', x: 59, y: 27 }, { id: 'merch11', x: 65, y: 40 }, { id: 'merch12', x: 68, y: 16 },
         { id: 'merch13', x: 71, y: 33 }, { id: 'merch14', x: 73, y: 68 }, { id: 'merch15', x: 78, y: 25 }
       ];
-    } else {
-      markers = [
-        { id: 'f1', x: 24, y: 57 }, { id: 'f2', x: 54, y: 34 },
-        { id: 'f3', x: 24, y: 24 }, { id: 'f4', x: 88, y: 65 }
-      ];
+    } else if (this.mapRegion === 'fullmap') {
+      markers = [];
     }
     // Filter based on the selected card type
     if (this.type === 'merchant') {
