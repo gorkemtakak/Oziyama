@@ -46,9 +46,8 @@ import { CardOption } from '../../models/event-card.model';
                 <div class="merchant-coins-display" style="margin-top: auto;">
                   🪙 
                   <input type="number" 
-                         [ngModel]="getMerchantCoins()" 
-                         (ngModelChange)="updateMerchantCoins($event)"
-                         [readonly]="!cardService.isSessionActive()"
+                         [(ngModel)]="activeCard()!.merchantCoins" 
+                         (ngModelChange)="saveMerchantCard()"
                          class="merchant-coins-input">
                 </div>
               </div>
@@ -118,13 +117,12 @@ import { CardOption } from '../../models/event-card.model';
                     <input type="number" 
                            [ngModel]="getMerchantItemCount(selectedMerchantItem()!)"
                            (ngModelChange)="updateItemCount(selectedMerchantItem()!, $event)"
-                           [readonly]="!cardService.isSessionActive()"
                            class="merchant-stock-input">
                   </span>
                 </div>
                 
                 <button class="item-buy-btn" 
-                        [disabled]="!cardService.isSessionActive() || getMerchantItemCount(selectedMerchantItem()!) <= 0"
+                        [disabled]="getMerchantItemCount(selectedMerchantItem()!) <= 0"
                         (click)="buyItem()">
                   Satın Al
                 </button>
@@ -965,81 +963,55 @@ export class CardDisplayComponent {
     this.selectedMerchantItem.set(null);
   }
 
+  saveMerchantCard() {
+    const card = this.activeCard();
+    if (card) {
+      this.cardService.updateCard({ ...card });
+    }
+  }
+
   getMerchantCoins(): number {
     const card = this.activeCard();
-    if (!card) return 0;
-    if (this.cardService.isSessionActive()) {
-      const state = this.cardService.getMerchantState(card.id);
-      if (state) return state.coins;
-    }
-    return card.merchantCoins || 0;
+    return card?.merchantCoins || 0;
   }
 
   getMerchantItemCount(item: any): number {
     if (!item) return 0;
-    const card = this.activeCard();
-    if (!card) return item.count !== undefined ? item.count : 1;
-    
-    if (this.cardService.isSessionActive()) {
-      const state = this.cardService.getMerchantState(card.id);
-      if (state && state.items[item.id] !== undefined) {
-        return state.items[item.id];
-      }
-    }
     return item.count !== undefined ? item.count : 1;
   }
 
   updateItemCount(item: any, newCount: number) {
     if (!item) return;
     const card = this.activeCard();
-    if (!card) return;
+    if (!card || !card.merchantItems) return;
     
-    if (this.cardService.isSessionActive()) {
-      this.cardService.updateMerchantSessionItemCount(card.id, item.id, newCount);
-    } else {
-      const updatedItems = card.merchantItems?.map(i => i.id === item.id ? { ...i, count: newCount } : i);
-      const updatedCard = { ...card, merchantItems: updatedItems };
-      this.cardService.updateCard(updatedCard);
-      this.cardService.activeCard.set(updatedCard);
+    const targetItem = card.merchantItems.find(i => i.id === item.id);
+    if (targetItem) {
+      targetItem.count = newCount;
+      this.saveMerchantCard();
     }
   }
 
   buyItem() {
     const item = this.selectedMerchantItem();
     const card = this.activeCard();
-    if (item && card) {
+    if (item && card && card.merchantItems) {
       const count = this.getMerchantItemCount(item);
       if (count <= 0) return;
       
       const price = item.price || 0;
-      const currentCoins = this.getMerchantCoins();
-      const newAmount = currentCoins + price;
+      const currentCoins = card.merchantCoins || 0;
       
-      if (this.cardService.isSessionActive()) {
-        this.cardService.updateMerchantSessionCoins(card.id, newAmount);
-        this.cardService.updateMerchantSessionItemCount(card.id, item.id, count - 1);
-      } else {
-        // Outside session, update DB directly
-        const updatedItems = card.merchantItems?.map(i => i.id === item.id ? { ...i, count: count - 1 } : i);
-        const updatedCard = { ...card, merchantCoins: newAmount, merchantItems: updatedItems };
-        this.cardService.updateCard(updatedCard);
-        this.cardService.activeCard.set(updatedCard);
+      const targetItem = card.merchantItems.find(i => i.id === item.id);
+      if (targetItem) {
+        targetItem.count = count - 1;
       }
+      card.merchantCoins = currentCoins + price;
+      
+      this.saveMerchantCard();
     }
   }
 
-  updateMerchantCoins(newAmount: number) {
-    const card = this.activeCard();
-    if (card) {
-      if (this.cardService.isSessionActive()) {
-        this.cardService.updateMerchantSessionCoins(card.id, newAmount);
-      } else {
-        const updatedCard = { ...card, merchantCoins: newAmount };
-        this.cardService.updateCard(updatedCard);
-        this.cardService.activeCard.set(updatedCard);
-      }
-    }
-  }
 
   flipCard() {
     if (!this.isFlipped()) {
