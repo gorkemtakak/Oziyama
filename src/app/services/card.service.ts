@@ -278,4 +278,45 @@ export class CardService {
   closeActiveCard() {
     this.activeCard.set(null);
   }
+
+  exportData(): void {
+    const dataStr = JSON.stringify(this.cards(), null, 2);
+    const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
+    
+    const exportFileDefaultName = 'oziyama_cards_backup.json';
+    
+    const linkElement = document.createElement('a');
+    linkElement.setAttribute('href', dataUri);
+    linkElement.setAttribute('download', exportFileDefaultName);
+    linkElement.click();
+  }
+
+  importData(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    if (!input.files || input.files.length === 0) return;
+
+    const file = input.files[0];
+    const reader = new FileReader();
+
+    reader.onload = (e) => {
+      try {
+        const result = e.target?.result as string;
+        const parsed = JSON.parse(result) as EventCard[];
+        if (Array.isArray(parsed)) {
+          this.cards.set(parsed);
+          this.saveCards();
+          alert('Veriler başarıyla yüklendi!');
+        } else {
+          alert('Hatalı dosya formatı.');
+        }
+      } catch (error) {
+        console.error('Import error:', error);
+        alert('Dosya okunurken bir hata oluştu.');
+      }
+    };
+    reader.readAsText(file);
+    // Reset input so the same file can be selected again
+    input.value = '';
+  }
 }
+

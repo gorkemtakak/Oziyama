@@ -25,8 +25,20 @@ import { CardService } from '../../services/card.service';
         
         <div class="divider"></div>
 
+        <!-- DATA CONTROLS -->
+        <button class="data-btn" (click)="cardService.exportData()" title="Verileri Dışa Aktar">
+          💾 Yedekle
+        </button>
+        <button class="data-btn" (click)="fileInput.click()" title="Verileri İçe Aktar">
+          📂 Yükle
+        </button>
+        <input type="file" #fileInput (change)="cardService.importData($event)" accept=".json" style="display: none;">
+        
+        <div class="divider"></div>
+
         <button 
           [class.active]="currentView === 'map'" 
+
           (click)="viewChange.emit('map')">
           Map View
         </button>
@@ -112,6 +124,17 @@ import { CardService } from '../../services/card.service';
     }
     .session-btn.end:hover {
       background: rgba(231, 76, 60, 0.1) !important;
+    }
+    .data-btn {
+      color: var(--text-muted);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+    .data-btn:hover {
+      background: rgba(255,255,255,0.05);
+      color: white;
     }
   `]
 })
